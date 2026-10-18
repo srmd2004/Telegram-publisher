@@ -2,60 +2,32 @@
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#111827">
-  <title>مدیر انتشار تلگرام</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#14251f">
+  <title>پنل انتشار تلگرام</title>
   <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
 </head>
 <body>
-  <main class="shell">
-    <header class="top">
-      <div class="logo" aria-hidden="true">✦</div>
-      <div>
-        <p class="eyebrow">پنل انتشار محتوا</p>
-        <h1>مدیر انتشار تلگرام</h1>
-        <p class="sub">یک بار بنویس؛ فعلاً مستقیم در کانال تلگرام منتشر کن.</p>
-      </div>
-      <span id="connection" class="status">در حال بررسی اتصال…</span>
+  <main class="wrap">
+    <header class="header">
+      <div class="mark" aria-hidden="true">↗</div>
+      <div><p class="eyebrow">مدیریت محتوا</p><h1>پنل انتشار تلگرام</h1><p class="sub">پیام، عکس یا فیلم را مستقیم از گوشی منتشر کن.</p></div>
     </header>
-
-    <section class="card">
-      <div class="section-title">
-        <div>
-          <h2>ایجاد پست</h2>
-          <p>متن یا لینک مستقیم تصویر را وارد کن.</p>
-        </div>
-        <span class="telegram-mark">➤ Telegram</span>
-      </div>
-
-      <form id="postForm">
-        <label for="postText">متن پست</label>
-        <textarea id="postText" name="text" rows="8" maxlength="4096"
-          placeholder="متن خبر یا پیام را اینجا بنویس…"></textarea>
-        <div class="field-meta"><span>حداکثر ۴۰۹۶ نویسه برای متن</span><span id="counter">۰ / ۴۰۹۶</span></div>
-
-        <label for="imageUrl">لینک تصویر (اختیاری)</label>
-        <input id="imageUrl" name="imageUrl" type="url" placeholder="https://example.com/image.jpg">
-        <p class="hint">در این نسخه، تصویر باید از طریق یک لینک مستقیم و قابل دسترس برای تلگرام دریافت شود.</p>
-
-        <div class="notice">
-          <strong>پیش از انتشار</strong>
-          <span>ارسال با فشردن دکمه زیر فوراً در کانال مقصد انجام می‌شود. ابتدا یک پیام آزمایشی منتشر کن.</span>
-        </div>
-
-        <button id="publishButton" type="submit">
-          <span class="button-icon">➤</span>
-          <span>انتشار در تلگرام</span>
-        </button>
-      </form>
-      <div id="result" class="result" role="status" aria-live="polite" hidden></div>
-    </section>
-
-    <footer>
-      <span>نسخه آزمایشی · فقط انتشار در تلگرام</span>
-      <span>توکن ربات فقط روی سرور نگهداری می‌شود.</span>
-    </footer>
+    <section class="status-card" aria-live="polite"><span id="statusDot" class="dot"></span><span id="connectionStatus">در حال بررسی اتصال…</span></section>
+    <form id="publishForm" class="panel">
+      <label for="caption">متن پیام یا توضیح رسانه</label>
+      <textarea id="caption" name="caption" rows="5" maxlength="4096" placeholder="متن پست را اینجا بنویس…"></textarea>
+      <div class="counter"><span id="counterText">۰ نویسه</span><span id="captionHint">پیام متنی: حداکثر ۴۰۹۶ نویسه؛ همراه عکس/فیلم: ۱۰۲۴ نویسه</span></div>
+      <div class="section-title">افزودن عکس یا فیلم <span class="optional">اختیاری</span></div>
+      <label class="file-picker" for="mediaFile"><span class="file-icon">＋</span><span><strong>انتخاب فایل از گوشی</strong><small>عکس JPG، PNG، WEBP یا GIF؛ فیلم MP4، MOV یا WEBM</small></span></label>
+      <input id="mediaFile" name="media" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime,video/webm">
+      <div id="preview" class="preview hidden"></div>
+      <p class="limit-note">حداکثر حجم: عکس ۱۰ مگابایت، فیلم ۵۰ مگابایت.</p>
+      <button id="publishButton" type="submit"><span id="buttonText">انتشار در تلگرام</span><span id="spinner" class="spinner hidden"></span></button>
+      <p id="result" class="result" role="status" aria-live="polite"></p>
+    </form>
+    <footer>فایل از طریق سرور به تلگرام فرستاده می‌شود؛ نیازی به آپلود در سایت دیگری یا کپی‌کردن لینک نیست.</footer>
   </main>
-  <script src="/app.js"></script>
 </body>
 </html>
