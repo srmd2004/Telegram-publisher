@@ -1,6 +1,61 @@
 require("dotenv").config();
 
 const express = require("express");
+app.use(helmet({ contentSecurityPolicy: false }));
+
+// Protect the website and API with HTTP Basic Authentication.
+const crypto = require("crypto");
+
+app.use((req, res, next) => {
+  const username = process.env.ADMIN_USERNAME;
+  const password = process.env.ADMIN_PASSWORD;
+
+  if (!username || !password) {
+    return res.status(503).send("Authentication is not configured.");
+  }
+
+  res.set("Cache-Control", "no-store");
+
+  const header = req.headers.authorization || "";
+  const parts = header.match(/^Basic\s+(.+)$/i);
+
+  if (!parts) {
+    res.set("WWW-Authenticate", 'Basic realm="Telegram Publisher", charset="UTF-8"');
+    return res.status(401).send("Please sign in to continue.");
+  }
+
+  let supplied;
+  try {
+    supplied = Buffer.from(parts[1], "base64").toString("utf8");
+  } catch {
+    return res.status(401).send("Invalid credentials.");
+  }
+
+  const separator = supplied.indexOf(":");
+  if (separator < 0) {
+    return res.status(401).send("Invalid credentials.");
+  }
+
+  const suppliedUser = Buffer.from(supplied.slice(0, separator));
+  const suppliedPass = Buffer.from(supplied.slice(separator + 1));
+  const expectedUser = Buffer.from(username);
+  const expectedPass = Buffer.from(password);
+
+  const safeEqual = (a, b) =>
+    a.length === b.length && crypto.timingSafeEqual(a, b);
+
+  if (
+    !safeEqual(suppliedUser, expectedUser) ||
+    !safeEqual(suppliedPass, expectedPass)
+  ) {
+    res.set("WWW-Authenticate", 'Basic realm="Telegram Publisher", charset="UTF-8"');
+    return res.status(401).send("Invalid credentials.");
+  }
+
+  next();
+});
+
+app.use(express.json({ limit: "1mb" }));
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const path = require("path");
