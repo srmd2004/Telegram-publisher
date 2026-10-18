@@ -10,14 +10,13 @@ const counterText = document.getElementById("counterText");
 const statusDot = document.getElementById("statusDot");
 const connectionStatus = document.getElementById("connectionStatus");
 let previewUrl = null;
-
+const names = { telegram: "تلگرام", bale: "بله", eitaa: "ایتا", instagram: "اینستاگرام" };
 const persianDigits = value => String(value).replace(/\d/g, d => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
 function updateCounter() {
   counterText.textContent = `${persianDigits(caption.value.length)} نویسه`;
   caption.maxLength = mediaInput.files[0] ? 1024 : 4096;
 }
 caption.addEventListener("input", updateCounter);
-
 mediaInput.addEventListener("change", () => {
   preview.replaceChildren();
   if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -31,8 +30,7 @@ mediaInput.addEventListener("change", () => {
   const media = document.createElement(isVideo ? "video" : "img");
   media.src = previewUrl;
   if (isVideo) { media.muted = true; media.playsInline = true; }
-  const meta = document.createElement("div");
-  meta.className = "file-meta";
+  const meta = document.createElement("div"); meta.className = "file-meta";
   const name = document.createElement("strong"); name.textContent = file.name;
   const size = document.createElement("small"); size.textContent = `${persianDigits((file.size / (1024 * 1024)).toFixed(2))} مگابایت`;
   meta.append(name, size);
@@ -43,11 +41,19 @@ mediaInput.addEventListener("change", () => {
 
 async function checkStatus() {
   try {
-    const response = await fetch("/api/status", { credentials: "same-origin" });
+    const response = await fetch("/api/status", { credentials: "same-origin", cache: "no-store" });
     if (!response.ok) throw new Error("status");
     const data = await response.json();
-    statusDot.className = `dot ${data.configured ? "ok" : "bad"}`;
-    connectionStatus.textContent = data.configured ? "اتصال تلگرام آماده است" : "تنظیمات تلگرام در Render کامل نیست";
+    const platforms = data.platforms || {};
+    for (const key of Object.keys(names)) {
+      const node = document.getElementById(`state-${key}`);
+      const configured = Boolean(platforms[key]?.configured);
+      node.textContent = configured ? "تنظیم شده" : "تنظیم نشده";
+      node.className = configured ? "state-ready" : "state-missing";
+    }
+    const count = Object.values(platforms).filter(p => p.configured).length;
+    statusDot.className = `dot ${count ? "ok" : "bad"}`;
+    connectionStatus.textContent = `${persianDigits(count)} مقصد از ۴ مقصد دارای تنظیمات هستند (این بررسی، اعتبار توکن را آزمایش نمی‌کند).`;
   } catch {
     statusDot.className = "dot bad";
     connectionStatus.textContent = "وضعیت اتصال قابل بررسی نیست؛ صفحه را دوباره بارگذاری کن.";
@@ -56,42 +62,40 @@ async function checkStatus() {
 
 form.addEventListener("submit", async event => {
   event.preventDefault();
-  result.className = "result";
-  result.textContent = "";
+  result.className = "result"; result.replaceChildren();
   const file = mediaInput.files[0];
   const text = caption.value.trim();
+  const targets = [...form.querySelectorAll('input[name="target"]:checked')].map(el => el.value);
+  if (!targets.length) { showError("حداقل یک مقصد انتشار انتخاب کن."); return; }
   if (!file && !text) { showError("متن پیام را بنویس یا یک عکس/فیلم انتخاب کن."); return; }
   if (file && text.length > 1024) { showError("متن همراه عکس یا فیلم حداکثر ۱۰۲۴ نویسه است."); return; }
   if (!file && text.length > 4096) { showError("متن پیام حداکثر ۴۰۹۶ نویسه است."); return; }
-  if (file) {
-    const max = file.type.startsWith("image/") ? 10 * 1024 * 1024 : 50 * 1024 * 1024;
-    if (file.size > max) { showError(file.type.startsWith("image/") ? "حجم عکس باید حداکثر ۱۰ مگابایت باشد." : "حجم فیلم باید حداکثر ۵۰ مگابایت باشد."); return; }
-  }
-
-  button.disabled = true; spinner.classList.remove("hidden"); buttonText.textContent = "در حال ارسال…";
+  if (file && file.size > 50 * 1024 * 1024) { showError("حجم فایل باید حداکثر ۵۰ مگابایت باشد."); return; }
+  button.disabled = true; spinner.classList.remove("hidden"); buttonText.textContent = "در حال انتشار…";
   try {
-    let response;
-    if (file) {
-      const data = new FormData();
-      data.append("media", file, file.name);
-      data.append("caption", text);
-      response = await fetch("/api/publish-media", { method: "POST", body: data, credentials: "same-origin" });
-    } else {
-      response = await fetch("/api/publish", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }), credentials: "same-origin"
-      });
+    const data = new FormData();
+    data.append("targets", JSON.stringify(targets));
+    data.append("caption", text);
+    if (file) data.append("media", file, file.name);
+    const response = await fetch("/api/publish-multi", { method: "POST", body: data, credentials: "same-origin" });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok && !payload.results) throw new Error(payload.error || "ارسال ناموفق بود.");
+    renderResults(payload);
+    if (payload.results?.some(item => item.ok)) {
+      caption.value = ""; mediaInput.value = ""; mediaInput.dispatchEvent(new Event("change")); updateCounter();
     }
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || !data.ok) throw new Error(data.error || "ارسال ناموفق بود.");
-    result.className = "result success"; result.textContent = data.message || "با موفقیت منتشر شد.";
-    caption.value = ""; mediaInput.value = ""; mediaInput.dispatchEvent(new Event("change")); updateCounter();
-  } catch (error) {
-    showError(error.message || "ارتباط با سرور برقرار نشد.");
-  } finally {
-    button.disabled = false; spinner.classList.add("hidden"); buttonText.textContent = "انتشار در تلگرام";
-  }
+  } catch (error) { showError(error.message || "ارتباط با سرور برقرار نشد."); }
+  finally { button.disabled = false; spinner.classList.add("hidden"); buttonText.textContent = "انتشار در مقصدهای انتخاب‌شده"; }
 });
+function renderResults(payload) {
+  result.className = "result";
+  const summary = document.createElement("p"); summary.textContent = payload.message || "نتیجه انتشار:"; result.append(summary);
+  for (const item of payload.results || []) {
+    const line = document.createElement("div"); line.className = item.ok ? "publish-result ok" : "publish-result fail";
+    line.textContent = `${names[item.target] || item.target}: ${item.message}`;
+    result.append(line);
+  }
+  if (!payload.results?.length) result.classList.add("error");
+}
 function showError(message) { result.className = "result error"; result.textContent = message; }
-updateCounter();
-checkStatus();
+updateCounter(); checkStatus();

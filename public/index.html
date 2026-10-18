@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#14251f">
-  <title>پنل انتشار تلگرام</title>
+  <title>پنل انتشار چندرسانه‌ای</title>
   <link rel="stylesheet" href="/style.css">
   <script src="/app.js" defer></script>
 </head>
@@ -12,22 +12,30 @@
   <main class="wrap">
     <header class="header">
       <div class="mark" aria-hidden="true">↗</div>
-      <div><p class="eyebrow">مدیریت محتوا</p><h1>پنل انتشار تلگرام</h1><p class="sub">پیام، عکس یا فیلم را مستقیم از گوشی منتشر کن.</p></div>
+      <div><p class="eyebrow">مدیریت محتوا</p><h1>پنل انتشار چندرسانه‌ای</h1><p class="sub">یک پست را از گوشی انتخاب کن و به مقصدهای دلخواه بفرست.</p></div>
     </header>
-    <section class="status-card" aria-live="polite"><span id="statusDot" class="dot"></span><span id="connectionStatus">در حال بررسی اتصال…</span></section>
+    <section class="status-card" aria-live="polite"><span id="statusDot" class="dot"></span><span id="connectionStatus">در حال بررسی تنظیمات…</span></section>
     <form id="publishForm" class="panel">
+      <div class="section-title">مقصدهای انتشار</div>
+      <div class="destinations">
+        <label class="destination"><input type="checkbox" name="target" value="telegram" checked><span>تلگرام</span><small id="state-telegram">بررسی…</small></label>
+        <label class="destination"><input type="checkbox" name="target" value="bale"><span>بله</span><small id="state-bale">بررسی…</small></label>
+        <label class="destination"><input type="checkbox" name="target" value="eitaa"><span>ایتا</span><small id="state-eitaa">بررسی…</small></label>
+        <label class="destination"><input type="checkbox" name="target" value="instagram"><span>اینستاگرام</span><small id="state-instagram">بررسی…</small></label>
+      </div>
+      <p class="limit-note">برای جلوگیری از انتشار ناخواسته، فقط تلگرام در ابتدا انتخاب شده است.</p>
       <label for="caption">متن پیام یا توضیح رسانه</label>
       <textarea id="caption" name="caption" rows="5" maxlength="4096" placeholder="متن پست را اینجا بنویس…"></textarea>
-      <div class="counter"><span id="counterText">۰ نویسه</span><span id="captionHint">پیام متنی: حداکثر ۴۰۹۶ نویسه؛ همراه عکس/فیلم: ۱۰۲۴ نویسه</span></div>
+      <div class="counter"><span id="counterText">۰ نویسه</span><span>متن همراه عکس/فیلم: حداکثر ۱۰۲۴ نویسه</span></div>
       <div class="section-title">افزودن عکس یا فیلم <span class="optional">اختیاری</span></div>
-      <label class="file-picker" for="mediaFile"><span class="file-icon">＋</span><span><strong>انتخاب فایل از گوشی</strong><small>عکس JPG، PNG، WEBP یا GIF؛ فیلم MP4، MOV یا WEBM</small></span></label>
+      <label class="file-picker" for="mediaFile"><span class="file-icon">＋</span><span><strong>انتخاب فایل از گوشی</strong><small>عکس JPG/PNG/WEBP/GIF؛ فیلم MP4/MOV/WEBM</small></span></label>
       <input id="mediaFile" name="media" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime,video/webm">
       <div id="preview" class="preview hidden"></div>
-      <p class="limit-note">حداکثر حجم: عکس ۱۰ مگابایت، فیلم ۵۰ مگابایت.</p>
-      <button id="publishButton" type="submit"><span id="buttonText">انتشار در تلگرام</span><span id="spinner" class="spinner hidden"></span></button>
-      <p id="result" class="result" role="status" aria-live="polite"></p>
+      <p class="limit-note">حداکثر حجم فایل ۵۰ مگابایت. برای اینستاگرام عکس باید JPG/JPEG (حداکثر ۸ مگابایت) یا ویدئوی MP4/MOV باشد. اینستاگرام پست فقط متنی نمی‌پذیرد.</p>
+      <button id="publishButton" type="submit"><span id="buttonText">انتشار در مقصدهای انتخاب‌شده</span><span id="spinner" class="spinner hidden"></span></button>
+      <div id="result" class="result" role="status" aria-live="polite"></div>
     </form>
-    <footer>فایل از طریق سرور به تلگرام فرستاده می‌شود؛ نیازی به آپلود در سایت دیگری یا کپی‌کردن لینک نیست.</footer>
+    <footer>توکن‌ها در سرور Render نگهداری می‌شوند. رسانه اینستاگرام فقط از یک نشانی موقت و تصادفی در همین سرویس دریافت می‌شود و نیازی به آپلود دستی در سایت دیگر نیست.</footer>
   </main>
 </body>
 </html>
